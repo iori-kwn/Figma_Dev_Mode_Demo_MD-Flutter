@@ -1,0 +1,84 @@
+name: figma_material3_app
+description: 'A Flutter app implementing Material 3 design system based on Figma designs'
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # UI & Material Design
+  cupertino_icons: ^1.0.6
+  material_color_utilities: ^0.11.1
+
+  # State Management
+  flutter_bloc: ^8.1.3
+  equatable: ^2.0.5
+
+  # Navigation
+  go_router: ^12.1.3
+
+  # Form & Validation
+  formz: ^0.6.1
+
+  # Animations
+  animations: ^2.0.8
+  lottie: ^2.7.0
+
+  # Storage
+  shared_preferences: ^2.2.2
+
+  # HTTP & API
+  dio: ^5.3.2
+
+  # Utilities
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Linting
+  flutter_lints: ^3.0.0
+
+  # Testing
+  bloc_test: ^9.1.4
+  mockito: ^5.4.2
+  build_runner: ^2.4.7
+
+  # Assets
+  flutter_launcher_icons: ^0.13.1
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: 'launcher_icon'
+  ios: true
+  image_path: 'assets/icons/app_icon.png'
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+    - assets/illustrations/
+
+  # Fonts (using system Roboto for now)
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: assets/fonts/Roboto-Regular.ttf
+  #         weight: 400
+  #       - asset: assets/fonts/Roboto-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Roboto-Bold.ttf
+  #         weight: 700

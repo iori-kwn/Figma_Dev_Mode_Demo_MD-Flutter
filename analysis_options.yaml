@@ -1,0 +1,31 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Dart style
+    prefer_single_quotes: true
+    avoid_print: true
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_const_declarations: true
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+
+    # Flutter specific
+    use_key_in_widget_constructors: true
+    prefer_const_constructors_in_immutables: true
+
+    # Code quality
+    avoid_unnecessary_containers: true
+    sized_box_for_whitespace: true
+    use_super_parameters: true
+
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    - 'build/**'
+
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
