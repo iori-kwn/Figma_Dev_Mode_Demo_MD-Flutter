@@ -4,6 +4,8 @@ import '../../routes/app_router.dart';
 import '../../widgets/common/primary_button.dart';
 import '../../widgets/common/secondary_button.dart';
 import '../../widgets/common/progress_header.dart';
+import '../../widgets/forms/password_input_field.dart';
+import '../../widgets/forms/password_requirement_checker.dart';
 
 class PasswordSetupPage extends StatefulWidget {
   const PasswordSetupPage({super.key});
@@ -20,13 +22,15 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
-  // パスワード要件チェック
+  // パスワード要件チェック（フィグマワイヤーフレームに基づく）
   bool get _hasMinLength => _passwordController.text.length >= 8;
-  bool get _hasUppercase => _passwordController.text.contains(RegExp(r'[A-Z]'));
-  bool get _hasLowercase => _passwordController.text.contains(RegExp(r'[a-z]'));
+  bool get _hasLetter => _passwordController.text.contains(RegExp(r'[a-zA-Z]'));
   bool get _hasNumber => _passwordController.text.contains(RegExp(r'[0-9]'));
-  bool get _hasSpecialChar => _passwordController.text.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-  bool get _passwordsMatch => _passwordController.text == _confirmPasswordController.text;
+  bool get _passwordsMatch => _passwordController.text == _confirmPasswordController.text && _passwordController.text.isNotEmpty;
+  
+  bool get _isPasswordValid => _hasMinLength && _hasLetter && _hasNumber;
+  
+  String? _passwordMismatchError;
 
   @override
   void dispose() {
@@ -36,7 +40,13 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
   }
 
   Future<void> _handleContinue() async {
-    if (!_formKey.currentState!.validate()) return;
+    // 確認パスワードが入力されている場合は一致を確認
+    if (_confirmPasswordController.text.isNotEmpty && !_passwordsMatch) {
+      setState(() {
+        _passwordMismatchError = 'パスワードが一致しません';
+      });
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -49,50 +59,14 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
     }
   }
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'パスワードを入力してください';
-    }
-    if (!_hasMinLength) {
-      return '8文字以上で入力してください';
-    }
-    return null;
-  }
-
-  String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'パスワードを再入力してください';
-    }
-    if (!_passwordsMatch) {
-      return 'パスワードが一致しません';
-    }
-    return null;
-  }
-
-  Widget _buildPasswordRequirement(String text, bool isValid) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          Icon(
-            isValid ? Icons.check_circle : Icons.radio_button_unchecked,
-            size: 16,
-            color: isValid 
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isValid 
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
+  void _validatePasswordMatch() {
+    setState(() {
+      if (_confirmPasswordController.text.isNotEmpty && !_passwordsMatch) {
+        _passwordMismatchError = 'パスワードが一致しません';
+      } else {
+        _passwordMismatchError = null;
+      }
+    });
   }
 
   @override
@@ -115,128 +89,54 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
             // Main Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 32),
+                padding: const EdgeInsets.all(21.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
 
-                      // Password Field
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: !_isPasswordVisible,
-                        validator: _validatePassword,
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          labelText: 'パスワード',
-                          hintText: '8文字以上で入力してください',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(_isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                          ),
-                        ),
+                    // Page Title
+                    Text(
+                      'パスワードを設定',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
                       ),
+                    ),
 
-                      const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                      // Password Requirements
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: theme.colorScheme.outlineVariant,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'パスワード要件',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildPasswordRequirement('8文字以上', _hasMinLength),
-                            _buildPasswordRequirement('大文字を含む', _hasUppercase),
-                            _buildPasswordRequirement('小文字を含む', _hasLowercase),
-                            _buildPasswordRequirement('数字を含む', _hasNumber),
-                            _buildPasswordRequirement('特殊文字を含む (!@#\$%^&*)', _hasSpecialChar),
-                          ],
-                        ),
-                      ),
+                    // Password Requirements Checker
+                    PasswordRequirementChecker(password: _passwordController.text),
 
-                      const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                      // Confirm Password Field
-                      TextFormField(
-                        controller: _confirmPasswordController,
-                        obscureText: !_isConfirmPasswordVisible,
-                        validator: _validateConfirmPassword,
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          labelText: 'パスワード確認',
-                          hintText: '同じパスワードを再入力してください',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(_isConfirmPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility),
-                            onPressed: () {
-                              setState(() {
-                                _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
+                    // Password Field with Strength Indicator
+                    PasswordInputField(
+                      controller: _passwordController,
+                      label: 'パスワード',
+                      showStrengthIndicator: true,
+                      onChanged: (value) {
+                        setState(() {});
+                        _validatePasswordMatch();
+                      },
+                    ),
 
-                      const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
-                      // Security Notice
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.security,
-                              color: theme.colorScheme.primary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'パスワードは暗号化され、安全に保存されます',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    // Confirm Password Field
+                    PasswordInputField(
+                      controller: _confirmPasswordController,
+                      label: 'パスワード確認',
+                      errorText: _passwordMismatchError,
+                      onChanged: (value) {
+                        _validatePasswordMatch();
+                      },
+                    ),
+
+                    const SizedBox(height: 32),
+                  ],
                 ),
               ),
             ),
@@ -265,16 +165,11 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
                   Expanded(
                     flex: 2,
                     child: PrimaryButton(
-                      onPressed: _hasMinLength &&
-                              _hasUppercase &&
-                              _hasLowercase &&
-                              _hasNumber &&
-                              _hasSpecialChar &&
-                              _passwordsMatch &&
-                              _confirmPasswordController.text.isNotEmpty
+                      onPressed: _isPasswordValid && 
+                          (_confirmPasswordController.text.isEmpty || _passwordsMatch)
                           ? _handleContinue
                           : null,
-                      text: '次へ',
+                      text: '続ける',
                       isLoading: _isLoading,
                     ),
                   ),

@@ -14,8 +14,7 @@ class TermsAgreementPage extends StatefulWidget {
 
 class _TermsAgreementPageState extends State<TermsAgreementPage> {
   bool _isLoading = false;
-  bool _acceptTerms = false;
-  bool _acceptPrivacy = false;
+  bool _acceptTermsAndPrivacy = false; // Combined as shown in wireframe
   bool _acceptMarketing = false;
 
   Future<void> _handleContinue() async {
@@ -30,85 +29,51 @@ class _TermsAgreementPageState extends State<TermsAgreementPage> {
     }
   }
 
-  Widget _buildAgreementItem({
-    required String title,
-    required String description,
+  Widget _buildCheckboxItem({
+    required String text,
     required bool value,
     required ValueChanged<bool?> onChanged,
     bool isRequired = false,
-    VoidCallback? onViewDetails,
   }) {
     final theme = Theme.of(context);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: value
-              ? theme.colorScheme.primary
-              : theme.colorScheme.outlineVariant,
-        ),
-      ),
-      child: Column(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Checkbox(
-                value: value,
-                onChanged: onChanged,
-                activeColor: theme.colorScheme.primary,
+          Container(
+            width: 20,
+            height: 20,
+            margin: const EdgeInsets.only(right: 12, top: 2),
+            decoration: BoxDecoration(
+              color: value ? theme.colorScheme.onSurface : Colors.transparent,
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.6),
+                width: 1.5,
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (isRequired) ...[
-                          const SizedBox(width: 4),
-                          Text(
-                            '(必須)',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.error,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: value
+                ? Icon(
+                    Icons.check,
+                    size: 14,
+                    color: Colors.white,
+                  )
+                : null,
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(!value),
+              child: Text(
+                text,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 14,
+                  fontWeight: isRequired ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
-              if (onViewDetails != null)
-                TextButton(
-                  onPressed: onViewDetails,
-                  child: Text(
-                    '詳細',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
         ],
       ),
@@ -179,7 +144,7 @@ class _TermsAgreementPageState extends State<TermsAgreementPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canContinue = _acceptTerms && _acceptPrivacy;
+    final canContinue = _acceptTermsAndPrivacy;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -190,164 +155,145 @@ class _TermsAgreementPageState extends State<TermsAgreementPage> {
             const ProgressHeader(
               currentStep: 7,
               totalSteps: 8,
-              title: '利用規約への同意',
+              title: '利用規約・プライバシーポリシー',
               subtitle: '必須項目にご同意ください',
             ),
 
             // Main Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(21.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
 
-                    // Header Message
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: theme.colorScheme.primary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'サービスを利用するために、以下の規約をお読みいただき、同意してください。',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                        ],
+                    // Page Title
+                    Text(
+                      '利用規約・プライバシーポリシー',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
                       ),
                     ),
 
                     const SizedBox(height: 24),
 
-                    // Terms Agreement
-                    _buildAgreementItem(
-                      title: '利用規約',
-                      description: 'サービスの利用条件や禁止事項について定めた規約です。',
-                      value: _acceptTerms,
-                      onChanged: (value) => setState(() => _acceptTerms = value ?? false),
-                      isRequired: true,
-                      onViewDetails: _showTermsDialog,
-                    ),
-
-                    // Privacy Policy Agreement
-                    _buildAgreementItem(
-                      title: 'プライバシーポリシー',
-                      description: '個人情報の取り扱いについて定めたポリシーです。',
-                      value: _acceptPrivacy,
-                      onChanged: (value) => setState(() => _acceptPrivacy = value ?? false),
-                      isRequired: true,
-                      onViewDetails: _showPrivacyDialog,
-                    ),
-
-                    // Marketing Agreement (Optional)
-                    _buildAgreementItem(
-                      title: 'マーケティング情報の受信',
-                      description: '新機能やキャンペーン情報をメールでお知らせします。',
-                      value: _acceptMarketing,
-                      onChanged: (value) => setState(() => _acceptMarketing = value ?? false),
-                      isRequired: false,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Agreement Status
+                    // Summary Box (Based on wireframe)
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: canContinue
-                            ? theme.colorScheme.primaryContainer
-                            : theme.colorScheme.errorContainer.withOpacity(0.3),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: canContinue
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.error,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            canContinue ? Icons.check_circle : Icons.error_outline,
-                            color: canContinue
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.error,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              canContinue
-                                  ? '必須項目にすべて同意いただきました'
-                                  : '必須項目への同意が必要です',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: canContinue
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.error,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Additional Notice
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerLowest,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: theme.colorScheme.outlineVariant,
+                          color: theme.colorScheme.outline.withOpacity(0.3),
+                          width: 1,
                         ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            '利用規約・プライバシーポリシーの要約',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // Summary List
+                          ...[
+                            '• お客様の個人情報を適切に保護します',
+                            '• サービス向上のためのデータ活用について',
+                            '• 禁止行為とアカウント停止について',
+                            '• お客様の権利と義務について',
+                          ].map((item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              item,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 14,
+                              ),
+                            ),
+                          )),
+
+                          const SizedBox(height: 16),
+
+                          // Detail Links
                           Row(
                             children: [
-                              Icon(
-                                Icons.security,
-                                color: theme.colorScheme.primary,
-                                size: 20,
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: _showTermsDialog,
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    alignment: Alignment.centerLeft,
+                                  ),
+                                  child: Text(
+                                    '利用規約全文',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      decoration: TextDecoration.underline,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'セキュリティについて',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: _showPrivacyDialog,
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    alignment: Alignment.centerLeft,
+                                  ),
+                                  child: Text(
+                                    'プライバシーポリシー全文',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      decoration: TextDecoration.underline,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '• 個人情報は暗号化して安全に保存されます\n'
-                            '• 同意はいつでも設定画面から変更可能です\n'
-                            '• マーケティング情報は配信停止できます',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 32),
+
+                    // Agreement Checkboxes
+                    _buildCheckboxItem(
+                      text: '利用規約およびプライバシーポリシーに同意します（必須）',
+                      value: _acceptTermsAndPrivacy,
+                      onChanged: (value) => setState(() => _acceptTermsAndPrivacy = value ?? false),
+                      isRequired: true,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Divider
+                    Container(
+                      height: 1,
+                      color: theme.colorScheme.outline.withOpacity(0.2),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _buildCheckboxItem(
+                      text: 'キャンペーン・お得な情報をメールで受け取る（任意）',
+                      value: _acceptMarketing,
+                      onChanged: (value) => setState(() => _acceptMarketing = value ?? false),
+                      isRequired: false,
+                    ),
+
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -378,7 +324,7 @@ class _TermsAgreementPageState extends State<TermsAgreementPage> {
                     flex: 2,
                     child: PrimaryButton(
                       onPressed: canContinue ? _handleContinue : null,
-                      text: '同意して登録完了',
+                      text: '同意して登録',
                       isLoading: _isLoading,
                     ),
                   ),
